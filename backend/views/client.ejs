@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+
+<%- include('header'); -%>
+
+<!-- Header and title section -->
+<h2 class="title">My Quiplash Game</h2>
+
+<div id="game">
+    <!-- Show when connected -->
+    <div v-if="connected">
+        <div v-if="amlogged">
+
+            <!-- Admin control section -->
+            <div v-if="gotAnAdmin">
+                <div>
+                    <h4 style="font-size: 24px;">ADMIN PAGE</h4>
+                    <p>CONTROL THE GAME FLOW AS YOU WISH</p>
+
+                    <style>
+                        .game-button {
+                            padding: 15px 30px;
+                            font-size: 24px;
+                            min-width: 100px;
+                            min-height: 40px;
+                            cursor: pointer;
+                        }
+                    </style>
+                    
+                    <!-- Admin control buttons -->
+                    <button v-if="appState.gameState == 0" @click="startGame()" class="game-button">
+                        Start Game
+                    </button>
+                    
+                    <button v-if="(appState.gameState == 1) && (appState.roundState < 5)" @click="advanceCurrentPhase()" class="game-button">
+                        Next Phase
+                    </button>
+                    
+                    <button v-if="(appState.gameState == 1) && (appState.roundState == 5) && (appState.round < 3)" @click="nextRound()" class="game-button">
+                        Next Round
+                    </button>
+                    
+                    <button v-if="(appState.gameState == 1) && (appState.roundState == 5) && (appState.round == 3)" @click="endGame()" class="game-button">
+                        End Game
+                    </button>
+                
+                    <p id="adminErrorPrompt"></p>
+                </div>
+            </div>
+
+            <!-- Audience section -->
+            <div v-if="amAudience">
+                <h3>You are now part of the Audience, Enjoy the game</h3>
+            </div>
+
+            <!-- Waiting for more players section -->
+            <div v-if="appState.gameState == 0">
+                <h3>Waiting for More Players</h3>
+                <div class="flex-space-evenly">
+                    <div class="playerList">
+                        <h3>Player List</h3>
+                        <ul class="stripped" id="playerList">
+                            <li v-for="player in players">{{player.username}}</li>
+                        </ul>
+                    </div>
+
+                    <div class="playerList">
+                        <h3>Audience List</h3>
+                        <ul class="stripped" id="audienceList">
+                            <li  v-for="user in audience">{{user.username}}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game in progress section -->
+            <div v-if="appState.gameState == 1">
+                <div v-if="waitAdvancingPhase">
+                    <h1>Admin needs to skip to the next phase</h1>
+                </div>
+
+                <div v-else>
+                    <!-- Prompt Collection section -->
+                    <div v-if="appState.roundState == 1">
+                        <div>
+                            <h2>Enter your prompt, goal is to be FUNNY</h2>
+                            <input type="text" id="promptSubmit" @keyup.enter="submitPrompt()" placeholder="Prompt" value="" style="width: 700px; height: 35px; font-size: 24px;">
+                            <p class="error" id="promptSubmitError"></p>
+                            <button @click="submitPrompt()" style="padding: 15px 30px; font-size: 24px; min-width: 100px; min-height: 40px;">
+                                Submit Prompt
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Answer Submission section -->
+                    <div v-if="appState.roundState == 2 && !amAudience">
+                        <div>
+                            <h2>Enter your answer, goal is to be the WINNER</h2>
+                            <h4 id="prompt"></h4>
+                            <p id="promptOwner"></p>
+                            <input type="text" id="answerSubmit" @keyup.enter="submitAnswer()" value="" placeholder="Answer" style="width: 700px; height: 35px; font-size: 24px;">
+                            <p class="error" id="answerSubmitError"></p>
+                            <button  @click="submitAnswer()" style="padding: 15px 30px; font-size: 24px; min-width: 100px; min-height: 40px;">
+                                Submit Answer
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-if="appState.roundState == 2 && amAudience">
+                        <h3>Wait for All players to submit</h3>
+                    </div>
+
+                    <!-- Voting section -->
+                    <div v-if="appState.roundState == 3">
+                        <h2>Time to vote</h2>
+                        <h2 id="promptToVote">Waiting For Prompts</h2>
+                        <h4 id="promptToVoteOwner"></h4>
+                        <div>
+                            <div class="flex-space-evenly">
+                                <div>
+                                    <h3 id="leftPromptAnswer"></h3>
+                                    <input type="radio" id="leftVote" name="funnierAnswer" value="leftPrompt">
+                                    <label for="leftVote">Option 1</label><br>
+                                </div>
+
+                                <div>
+                                    <h3 id="rightPromptAnswer"></h3>
+                                    <input type="radio" id="rightVote" name="funnierAnswer" value="rightPrompt">
+                                    <label for="rightVote">Option 2</label><br>
+                                </div>
+                            </div>
+                            <p class="error" id="voteSubmitError"></p>
+                            <button @click="submitVote()" style="padding: 15px 30px; font-size: 24px; min-width: 100px; min-height: 40px;">
+                                Submit Vote
+                            </button>
+                        </div>
+                    </div>
+
+                        <!-- Voting Results section -->
+                    <div v-if="appState.roundState == 4">
+                        <%- // include('votingResults'); -%>
+                        
+                        <section class="vote-results">
+                            <h2>Vote Results:</h2>
+                    
+                            <article v-for="[key, obj] of voteResults" class="vote-item">
+                            
+                                <h3>Prompt was: {{obj.prompt}}</h3>
+                            
+                                <div class="flex-container">
+                            
+                                    <!-- Left Answer Details -->
+                                    <div class="vote-answer">
+                                        <h3 id="leftPromptAnswer">Answer was: {{obj.answer1}}</h3>
+                                        <p>Answer By - {{obj.answerOwner1}}</p>
+                            
+                                        <h5>Votes:</h5>
+                                        <ul>
+                                            <li v-for="voter in obj.voters1">Voter was: {{voter}}</li>
+                                        </ul>
+                                    </div>
+                            
+                                    <!-- Right Answer Details -->
+                                    <div class="vote-answer">
+                                        <h3 id="rightPromptAnswer">Answer was: {{obj.answer2}}</h3>
+                                        <p>Answer By - {{obj.answerOwner2}}</p>
+                            
+                                        <h5>Votes:</h5>
+                                        <ul>
+                                            <li v-for="voter in obj.voters2">Voter was: {{voter}}</li>
+                                        </ul>
+                                    </div>
+                            
+                                </div>
+                            
+                            </article>
+                            
+                        </section>
+                        
+                    </div>
+
+                    <!-- Total Scores section -->
+                    <div v-if="appState.roundState == 5">
+                        <%- // include('totalScores'); -%>
+                        
+                        <div>
+                            <h2>Scores So Far</h2>
+                            <h4 id="lastRoundPrompt"></h4>
+                        
+                            <!-- Display player scores -->
+                            <h3  v-for="[username, obj] of new Map(Object.entries(players))">{{username}} has a score of: {{obj.ScoreThisSession}}</h3>
+                        
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat section -->
+            <%- include('chat'); -%>
+
+        </div>
+
+        <!-- Login section -->
+        <div v-else>
+            <%- // include('login'); -%>
+            <section class="auth-form">
+                <div class="input-group">
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter your username" @keyup.enter="login()">
+                </div>
+                <div class="input-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" @keyup.enter="login()">
+                </div>
+                <div class="button-group">
+                    <button type="button" class="login-btn" @click="login()">Login</button>
+                    <button type="button" class="register-btn" @click="register()">Register</button>
+                </div>
+                <p class="error" id="logInError"></p>
+            </section>
+        </div>
+        
+    </div>
+    <div v-else>
+        <p>Connecting...</p>
+    </div>
+</div>
+
+<%- include('footer'); -%>
+
+</html>

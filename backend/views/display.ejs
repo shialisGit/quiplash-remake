@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <!-- Include the header -->
+    <%- include('header'); -%>
+
+    <h2 class="title">My Quiplash Game</h2>
+    <p>To find my app on Google App Engine, go to: https://bamboo-rhino-401211.nw.r.appspot.com/ </p>
+    <p>To find my app on Azure urls, go to: https://quiplash-33196788-functionapp.azurewebsites.net</p>
+
+    <div id="game">
+        <div v-if="connected">
+
+            <!-- Display Admin status -->
+            <h5>Admin Is {{adminCred}}</h5>
+
+            <!-- Game State 0: Waiting for More Players -->
+            <div v-if="appState.gameState == 0">
+                <% // include('playerLists'); -%>
+                
+                <h3>Waiting for More Players</h3>
+                <div class="flex-space-evenly">
+                    <!-- Player List -->
+                    <div class="playerList">
+                        <h3>Player List</h3>
+                        <ul class="stripped" id="playerList">
+                            <li v-for="player in players">{{player.username}}</li>
+                        </ul>
+                    </div>
+
+                    <!-- Audience List -->
+                    <div class="playerList">
+                        <h3>Audience List</h3>
+                        <ul class="stripped" id="audienceList">
+                            <li v-for="user in audience">{{user.username}}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game State 1: In Progress -->
+            <div v-if="appState.gameState == 1">
+
+                <!-- Waiting for Admin to Skip Phase -->
+                <div v-if="waitAdvancingPhase">
+                    <h1>Admin needs to skip to the next phase</h1>
+                </div>
+
+                <!-- Game Phases -->
+                <div v-else>
+                    <div v-if="appState.roundState == 1">
+                        <h1>Enter A Prompt On Screen:</h1>
+                        <h3 id="promptNumUpdate"></h3>
+                    </div>
+
+                    <div v-if="appState.roundState == 2">
+                        <h1>Waiting for Players' Answers:</h1>
+                        <h3 id="answerNumUpdate"></h3>
+                    </div>
+
+                    <div v-if="appState.roundState == 3">
+                        <h1>Choose the Funniest Prompt</h1>
+                        <h3 id="votesNumUpdate"></h3>
+                    </div>
+
+                    <div v-if="appState.roundState == 4">
+                        <!-- Include Voting Results -->
+                        <%- // include('votingResults'); -%>
+                        <section class="vote-results">
+                            <h2>Vote Results:</h2>
+                            <article v-for="[key, obj] of voteResults" class="vote-item">
+                                <h3>Prompt was: {{obj.prompt}}</h3>
+                                <div class="flex-container">
+                                    <div class="vote-answer">
+                                        <h3 id="leftPromptAnswer">Answer was: {{obj.answer1}}</h3>
+                                        <p>Answer By - {{obj.answerOwner1}}</p>
+                                        <h5>Votes:</h5>
+                                        <ul>
+                                            <li v-for="voter in obj.voters1">Voter was: {{voter}}</li>
+                                        </ul>
+                                    </div>
+                                    <div class="vote-answer">
+                                        <h3 id="rightPromptAnswer">Answer was: {{obj.answer2}}</h3>
+                                        <p>Answer By - {{obj.answerOwner2}}</p>
+                                        <h5>Votes:</h5>
+                                        <ul>
+                                            <li v-for="voter in obj.voters2">Voter was: {{voter}}</li>
+                                        </ul                                </div>
+                                    </div>
+                                </article>
+                            </section>
+                        </div>
+        
+                        <div v-if="appState.roundState == 5">
+                            <!-- Include Total Scores -->
+                            <%- // include('totalScores'); -%>
+                            <div>
+                                <h2>Scores So Far</h2>
+                                <h4 id="lastRoundPrompt"></h4>
+                                <h3 v-for="[username, obj] of new Map(Object.entries(players))">{{username}} has a score of: {{obj.ScoreThisSession}}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        
+                <!-- Display Chat -->
+                <h4>Chat</h4>
+                <ul id="chat" class="stripped">
+                    <li v-for="message in messages">{{message}}</li>
+                </ul>
+        
+            </div>
+        
+            <!-- Display Connecting Message -->
+            <div v-else>
+                <p>Connecting...</p>
+            </div>
+        </div>
+        
+        <!-- Include the footer -->
+        <%- include('footerdisp'); -%>
+</html>

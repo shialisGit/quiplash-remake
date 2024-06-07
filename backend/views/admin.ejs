@@ -1,0 +1,28 @@
+<div>
+    <!-- ADMIN SECTION -->
+    <h4>ADMIN</h4>
+    <p>Use the Buttons to advance the game prematurely if u wish, don't go too quick though</p>
+
+    <!-- Start Game Button -->
+    <button v-if="appState.gameState == 0" @click="startGame()">
+        Start Game
+    </button>
+
+    <!-- Next Phase Button -->
+    <button v-if="(appState.gameState == 1) && (appState.roundState < 5)" @click="advanceCurrentPhase()">
+        Next Phase
+    </button>
+
+    <!-- Next Round Button -->
+    <button v-if="(appState.gameState == 1) && (appState.roundState == 5) && (appState.round < 3)" @click="nextRound()">
+        Next Round
+    </button>
+
+    <!-- End Game Button -->
+    <button v-if="(appState.gameState == 1) && (appState.roundState == 5) && (appState.round == 3)" @click="endGame()">
+        End Game
+    </button>
+
+    <!-- Admin Error Prompt -->
+    <p id="adminErrorPrompt"></p>
+</div>
