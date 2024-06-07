@@ -4,7 +4,7 @@
     "FUNCTIONS_WORKER_RUNTIME": "python",
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "COSMOS_ENDPOINT": "https://cosmos-33196788-db.documents.azure.com:443/",
-    "COSMOS_KEY": "...==",
+    "COSMOS_KEY": "...=",
     "DATABASE_NAME": "quiplash",
     "PLAYER_CONTAINER_NAME": "player",
     "PROMPT_CONTAINER_NAME": "prompt",
