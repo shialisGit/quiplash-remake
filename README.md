@@ -1,7 +1,3 @@
-Sure! Here is a README for the repository:
-
----
-
 # Quiplash Remake
 
 This is a remake of the popular party game Quiplash. The project is divided into two main parts: the backend and the frontend.
